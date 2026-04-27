@@ -1,0 +1,33 @@
+name: Build and push
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm64
+    strategy:
+      matrix:
+        include:
+          - name: qwen-embed
+            dockerfile: docker/llama_cpp.Dockerfile
+          - name: langcache
+            dockerfile: docker/langcache_embed.Dockerfile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ghcr.io/vegcom/maple-trees/${{ matrix.name }}:jp6
